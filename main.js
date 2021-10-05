@@ -15,24 +15,9 @@ const TTTGame = (() => {
         [[0,0], [1,1], [2,2]],
         [[0,2], [1,1], [2,0]]
     ];
-
-    //determines which moves are left to prevent double moves
-    let validMoves = [
-        [0,0], [0,1], [0,1],
-        [1,0], [1,1], [1,2],
-        [2,0], [2,1], [2,2]
-    ];
-    function isValidMove(move){
-        for(let i in validMoves){
-            if(JSON.stringify(validMoves[i]) === JSON.stringify(move)){
-                return true;
-            }
-        }
-        return false;
-    }
-
+    
     //determines winner of tictactoe game
-    function winner(){
+    function checkWinner(){
         let sum = 0;
         for(let i in winningGames){
             sum = gameBoard[winningGames[i][0][0]][winningGames[i][0][1]] + 
@@ -50,42 +35,95 @@ const TTTGame = (() => {
     //Makes move
     function playMove(playerSign, location) {
         if(playerSign == playerTurn){
-            if(isValidMove(location) == true){
+            if(gameBoard[location[0]][location[1]] == 0){
                 gameBoard[location[0]][location[1]] = playerSign;
                 playerTurn = playerTurn * -1;
-                movesMade += 1
-                
-            } else{
-                console.log("Not a valid move")
+                movesMade += 1;
             }
-        } else{
-            console.log("Not your turn")
         }
     }
 
-    return {gameBoard, winner, playMove};
+    const getMoveNumber = () => {
+        return movesMade;
+    }
+    const getPlayerTurn = () => {
+        return playerTurn;
+    }
+
+    return {gameBoard, checkWinner, playMove, getMoveNumber, getPlayerTurn};
 })();
 
 //Player objects
-const player = (playerSign, isAI) => {
+const player1 = (() => {
+    let playerSign = 0;
+    let isAI = false;
     let wins = 0;
 
     function playMove(location) {
         if(isAI == false){
             TTTGame.playMove(playerSign, location);
+
         } else {
-            location = aiMoveGenerator(TTTGame.gameBoard, playerSign);
+            TTTGame.playMove(playerSign, aiRandomMoveGenerator(TTTGame.gameBoard));
         }
-        
     };
 
-    function aiMoveGenerator(gameBoard, sign){
-
+    //Allows player to choose sign. Once sign is chosen for player1, player2 is automatically other sign
+    const setPlayerSign = (sign) => {
+        playerSign = sign;
+        player2.setPlayerSign(sign * -1);
     }
 
-    return {playerSign, isAI, wins, playMove};
+    const setAI = (ai) => {
+        isAI = ai;
+    }
+
+    
+    return {playerSign, isAI, wins, playMove, setPlayerSign, setAI};
+})();
+
+const player2 = (() => {
+    let playerSign = 0;
+    let isAI = false;
+    let wins = 0;
+
+    function playMove(location) {
+        if(isAI == false){
+            TTTGame.playMove(playerSign, location);
+
+        } else {
+            TTTGame.playMove(playerSign, aiRandomMoveGenerator(TTTGame.gameBoard));
+        }
+    };
+
+    const setPlayerSign = (sign) => {
+        playerSign = sign;
+    }
+
+    const setAI = (ai) => {
+        isAI = ai;
+    }
+
+    
+    return {playerSign, isAI, wins, playMove, setPlayerSign, setAI};
+})();
+
+//plays random move
+function aiRandomMoveGenerator(gameBoard){
+    let validMove = false;
+    while(validMove == false){
+        let x = Math.floor(Math.random() * 3);
+        let y = Math.floor(Math.random() * 3);
+        console.log(x + ', ' + y)
+        if(gameBoard[x][y] == 0){
+            validMove = true;
+            return [x,y];
+        } else {
+            console.log('already played');
+        }
+    }
 }
 
 //UI
 
-export {TTTGame, player}
+export {TTTGame, player1, player2}
